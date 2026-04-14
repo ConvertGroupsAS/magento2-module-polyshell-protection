@@ -49,10 +49,94 @@ class HardenImageProcessorPluginTest extends TestCase
         $this->assertSame(['catalog', $imageContent], $result);
     }
 
+    /**
+     * Verifies all allowed image extensions pass validation.
+     * Covers MarkShust's original allowlist (jpg, jpeg, gif, png) plus expanded set.
+     *
+     * @dataProvider allowedExtensionsProvider
+     */
+    public function testAllAllowedExtensionsPass(string $extension): void
+    {
+        $imageContent = $this->createMock(ImageContentInterface::class);
+        $imageContent->method('getName')->willReturn('image.' . $extension);
+        $imageContent->method('getBase64EncodedData')->willReturn(base64_encode('safe data'));
+
+        $subject = $this->createMock(ImageProcessor::class);
+
+        $result = $this->plugin->beforeProcessImageContent($subject, 'catalog', $imageContent);
+
+        $this->assertSame(['catalog', $imageContent], $result);
+    }
+
+    public static function allowedExtensionsProvider(): array
+    {
+        return [
+            'jpg'  => ['jpg'],
+            'jpeg' => ['jpeg'],
+            'gif'  => ['gif'],
+            'png'  => ['png'],
+            'webp' => ['webp'],
+            'bmp'  => ['bmp'],
+            'heic' => ['heic'],
+        ];
+    }
+
+    /**
+     * Verifies dangerous extensions are blocked.
+     * Covers the full blocked extension pattern including common webshell extensions.
+     *
+     * @dataProvider dangerousExtensionsProvider
+     */
+    public function testDangerousExtensionsBlocked(string $filename): void
+    {
+        $imageContent = $this->createMock(ImageContentInterface::class);
+        $imageContent->method('getName')->willReturn($filename);
+
+        $this->logger->expects($this->once())->method('warning');
+        $this->expectException(InputException::class);
+
+        $this->plugin->beforeProcessImageContent(
+            $this->createMock(ImageProcessor::class),
+            'catalog',
+            $imageContent
+        );
+    }
+
+    public static function dangerousExtensionsProvider(): array
+    {
+        return [
+            'php'   => ['shell.php'],
+            'phtml' => ['shell.phtml'],
+            'phar'  => ['shell.phar'],
+            'pht'   => ['shell.pht'],
+            'asp'   => ['shell.asp'],
+            'aspx'  => ['shell.aspx'],
+            'jsp'   => ['shell.jsp'],
+            'exe'   => ['payload.exe'],
+            'sh'    => ['script.sh'],
+        ];
+    }
+
     public function testEmptyFilenameBlocked(): void
     {
         $imageContent = $this->createMock(ImageContentInterface::class);
         $imageContent->method('getName')->willReturn('');
+
+        $this->logger->expects($this->once())->method('warning');
+        $this->expectException(InputException::class);
+        $this->expectExceptionMessage('Image file name is required.');
+
+        $this->plugin->beforeProcessImageContent(
+            $this->createMock(ImageProcessor::class),
+            'catalog',
+            $imageContent
+        );
+    }
+
+    public function testNullFilenameBlocked(): void
+    {
+        $imageContent = $this->createMock(ImageContentInterface::class);
+        $imageContent->method('getName')->willReturn(null);
 
         $this->logger->expects($this->once())->method('warning');
         $this->expectException(InputException::class);
