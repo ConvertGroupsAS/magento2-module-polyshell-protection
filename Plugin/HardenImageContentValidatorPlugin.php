@@ -21,12 +21,16 @@ use Aregowe\PolyShellProtection\Logger\Logger;
  * - Customer avatar uploads
  * - Any custom API using ImageContentInterface
  *
- * Expands on MarkShust_PolyshellPatch by adding:
- * - No-extension file blocking (MarkShust passes files with no extension)
+ * This plugin integrates and supersedes MarkShust_PolyshellPatch's
+ * ImageContentValidatorExtension, which enforced a basic 4-extension allowlist.
+ * In addition to that allowlist, this plugin provides:
+ * - No-extension file blocking
  * - Double-extension detection (file.php.jpg)
  * - Polyglot content scanning (image with embedded PHP)
  * - Unicode/URL-encoding obfuscation detection
  * - Broader blocked extension pattern
+ *
+ * Original extension-allowlist concept by Mark Shust (MarkShust_PolyshellPatch).
  */
 class HardenImageContentValidatorPlugin
 {
@@ -49,9 +53,9 @@ class HardenImageContentValidatorPlugin
     /**
      * After core validation passes, apply hardened security checks.
      *
-     * Runs AFTER MarkShust's plugin (both use afterIsValid, but our sortOrder
-     * is higher so we run second). This means MarkShust's basic 4-extension
-     * allowlist runs first, and we add deeper scanning on top.
+     * Integrates the extension-allowlist logic from MarkShust_PolyshellPatch
+     * and adds deeper scanning: polyglot detection, double-extension blocking,
+     * and obfuscation normalization.
      *
      * @param ImageContentValidator $subject
      * @param bool $result
@@ -76,7 +80,7 @@ class HardenImageContentValidatorPlugin
 
         $extension = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
 
-        // Block files with no extension — MarkShust's gap
+        // Block files with no extension
         if ($extension === '') {
             $this->logBlock('no extension', $fileName);
             throw new InputException(__('Image file must include a valid file extension.'));

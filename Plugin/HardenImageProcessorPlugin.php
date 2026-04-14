@@ -20,12 +20,14 @@ use Aregowe\PolyShellProtection\Logger\Logger;
  * to disk. By default, Magento never calls setAllowedExtensions() on the Uploader,
  * meaning ANY file extension is accepted. This is the root cause of APSB25-94.
  *
- * MarkShust_PolyshellPatch sets the uploader to [jpg, jpeg, gif, png].
- * We expand by also:
- * - Setting the same allowlist on the uploader (defense-in-depth with MarkShust)
- * - Performing filename validation with obfuscation detection BEFORE the save
- * - Scanning the base64 content for embedded PHP/polyglot payloads
- * - Blocking files with no extension
+ * This plugin integrates and supersedes MarkShust_PolyshellPatch's
+ * ImageProcessorRestrictExtensions, which set the uploader to [jpg, jpeg, gif, png].
+ * In addition to locking the uploader, this plugin:
+ * - Performs filename validation with obfuscation detection BEFORE the save
+ * - Scans the base64 content for embedded PHP/polyglot payloads
+ * - Blocks files with no extension
+ *
+ * Original uploader-locking concept by Mark Shust (MarkShust_PolyshellPatch).
  */
 class HardenImageProcessorPlugin
 {
@@ -142,8 +144,8 @@ class HardenImageProcessorPlugin
                 $uploader->setAllowedExtensions(FileUploadGuard::ALLOWED_IMAGE_EXTENSIONS);
             }
         } catch (\ReflectionException $e) {
-            // Fail open — if reflection breaks, the other layers (ImageContentValidator,
-            // MarkShust plugin) still enforce extension restrictions.
+            // Fail open — if reflection breaks, the other layers (ImageContentValidator
+            // plugin, request path blocking) still enforce extension restrictions.
             $this->logger->warning(
                 'PolyShellProtection: Could not lock ImageProcessor uploader extensions via reflection',
                 ['error' => $e->getMessage()]

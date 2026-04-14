@@ -4,6 +4,8 @@
 
 Comprehensive defense-in-depth module that closes the **PolyShell** unrestricted file upload vulnerability (APSB25-94) in Adobe Commerce. PolyShell affects all Magento Open Source and Adobe Commerce versions up to 2.4.9-alpha2. No official isolated patch exists for production versions.
 
+This module was originally forked from [markshust/magento2-module-polyshell-patch](https://github.com/markshust/magento-polyshell-patch) by [Mark Shust](https://github.com/markshust). With Mark's permission, his module's logic has been fully integrated into this one, and he has deprecated his package in favor of this module.
+
 **Reference:** [Sansec — PolyShell: unrestricted file upload in Magento and Adobe Commerce](https://sansec.io/research/magento-polyshell)
 
 If this module helped protect your store, consider [buying me a coffee ☕](https://ko-fi.com/aregowe) — it helps me keep maintaining and improving it.
@@ -40,13 +42,11 @@ composer remove aregowe/magento2-module-polyshell-protection
 bin/magento cache:flush
 ```
 
-## Using Alongside MarkShust_PolyshellPatch
+## Migrating from MarkShust_PolyshellPatch
 
-This module is designed to work **alongside** [markshust/magento2-module-polyshell-patch](https://github.com/markshust/magento-polyshell-patch), not replace it. Both can be installed at the same time and will complement each other.
+This module **integrates and supersedes** [markshust/magento2-module-polyshell-patch](https://github.com/markshust/magento-polyshell-patch). You do **not** need both modules — this one includes all of Mark Shust's original protection and extends it significantly.
 
-**MarkShust's module** provides a focused two-plugin fix: it enforces a 4-extension image allowlist (`jpg`, `jpeg`, `gif`, `png`) on `ImageContentValidator` and `ImageProcessor`. It is lightweight and easy to audit.
-
-**This module** runs after MarkShust's plugins (via higher `sortOrder` values) and adds:
+Mark Shust's module provided a focused two-plugin fix that enforced a 4-extension image allowlist (`jpg`, `jpeg`, `gif`, `png`) on `ImageContentValidator` and `ImageProcessor`. That logic is now fully integrated into this module's `HardenImageContentValidatorPlugin` and `HardenImageProcessorPlugin`, which add:
 - Polyglot file scanning (detects valid images with embedded PHP)
 - No-extension and double-extension attack detection
 - Multi-pass URL decoding and obfuscation normalization
@@ -55,14 +55,24 @@ This module is designed to work **alongside** [markshust/magento2-module-polyshe
 - Controller-level upload blocking for customer attribute and file upload endpoints
 - A kill switch blocking all custom option file uploads via the Webapi File Processor
 
-### Installing both
+The `composer.json` includes a `"replace"` directive for `markshust/magento2-module-polyshell-patch`, so Composer will automatically handle the transition.
+
+### If you currently have MarkShust_PolyshellPatch installed
 
 ```bash
-composer require markshust/magento2-module-polyshell-patch aregowe/magento2-module-polyshell-protection
-bin/magento module:enable MarkShust_PolyshellPatch Aregowe_PolyShellProtection
+bin/magento module:disable MarkShust_PolyshellPatch
+bin/magento setup:upgrade
+composer require aregowe/magento2-module-polyshell-protection
+bin/magento module:enable Aregowe_PolyShellProtection
 bin/magento setup:upgrade
 bin/magento cache:flush
 ```
+
+Composer's `replace` directive will remove MarkShust's package automatically when this module is installed.
+
+### Credits
+
+This module was forked from [markshust/magento2-module-polyshell-patch](https://github.com/markshust/magento-polyshell-patch), created by [Mark Shust](https://github.com/markshust) and sponsored by [M.academy](https://m.academy/). Mark gave his permission to integrate his module's logic into this one and has deprecated his package in favor of this project. Thank you, Mark!
 
 ## Vulnerability Summary
 
@@ -124,7 +134,7 @@ This module implements **eight layered Magento plugins** and **three security mo
 
 | Plugin | Target Class | Strategy |
 |--------|-------------|----------|
-| `HardenImageContentValidatorPlugin` | `ImageContentValidator` | After core validation, enforces strict image-only extension allowlist, blocks files with no extension, detects double-extension attacks (`.php.jpg`), scans base64 content for polyglot payloads. Runs after MarkShust_PolyshellPatch. |
+| `HardenImageContentValidatorPlugin` | `ImageContentValidator` | After core validation, enforces strict image-only extension allowlist, blocks files with no extension, detects double-extension attacks (`.php.jpg`), scans base64 content for polyglot payloads. Integrates MarkShust_PolyshellPatch's extension check. |
 | `HardenImageProcessorPlugin` | `ImageProcessor` | Before file write, locks the Uploader's allowed extensions via reflection, validates filename, blocks non-image extensions, scans for polyglot content. |
 
 ### Security Models
@@ -140,7 +150,6 @@ This module implements **eight layered Magento plugins** and **three security mo
 ### Additional Defenses
 
 - **Nginx deny rules** — recommended in tandem with this module to block direct access to `pub/media/custom_options/` at the web server level.
-- **[MarkShust_PolyshellPatch](https://github.com/markshust/magento-polyshell-patch)** — this module runs alongside and extends MarkShust's patch. MarkShust provides a basic 4-extension allowlist on `ImageContentValidator` and `ImageProcessor`. This module adds polyglot scanning, no-extension blocking, double-extension detection, obfuscation decoding, attack pattern matching, and all the additional interception layers above.
 
 ## Module Structure
 
@@ -207,13 +216,13 @@ Log context values are sanitized by `SecurityLogSanitizer` to prevent log inject
 |--------|-------------|-----------|
 | `BlockCustomerFileUploadPlugin` | **Fail-closed** | If reflection cannot read `entityTypeCode`, the entity type is set to `unknown_blocked` and the upload is rejected. Overly restrictive is safer than permissive. |
 | `BlockSuspiciousMediaAppPathPlugin` | **Fail-open** | If reflection on `Media::$relativeFileName` fails, the request passes through. Fail-closed would break ALL media serving. Other layers (nginx, `BlockSuspiciousMediaPathPlugin`) provide backup. Reflection failures are logged at error level. |
-| `HardenImageProcessorPlugin` (uploader lock) | **Fail-open** | If the uploader reflection fails, other layers (ImageContentValidator, MarkShust plugin) still enforce extension restrictions. Failure is logged. |
+| `HardenImageProcessorPlugin` (uploader lock) | **Fail-open** | If the uploader reflection fails, other layers (ImageContentValidator plugin, path blocking) still enforce extension restrictions. Failure is logged. |
 
 ## Compatibility
 
 - **Adobe Commerce**: 2.4.8-p4 (tested), expected compatible with 2.4.7+
 - **PHP**: 8.4 (tested). All reflection uses `::class` to access properties declared on parent classes correctly in PHP 8.4's stricter reflection model.
-- **MarkShust_PolyshellPatch**: Designed to run alongside. `sortOrder` values ensure this module's plugins execute after MarkShust's basic extension check.
+- **MarkShust_PolyshellPatch**: Integrates and replaces. The `composer.json` `replace` directive handles automatic migration.
 - **Hyva Theme**: No frontend dependencies. This module operates entirely on backend API and framework interception points.
 
 ## Running Tests
