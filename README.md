@@ -38,6 +38,30 @@ composer remove aregowe/magento2-module-polyshell-protection
 bin/magento cache:flush
 ```
 
+## Using Alongside MarkShust_PolyshellPatch
+
+This module is designed to work **alongside** [markshust/magento2-module-polyshell-patch](https://github.com/markshust/magento-polyshell-patch), not replace it. Both can be installed at the same time and will complement each other.
+
+**MarkShust's module** provides a focused two-plugin fix: it enforces a 4-extension image allowlist (`jpg`, `jpeg`, `gif`, `png`) on `ImageContentValidator` and `ImageProcessor`. It is lightweight and easy to audit.
+
+**This module** runs after MarkShust's plugins (via higher `sortOrder` values) and adds:
+- Polyglot file scanning (detects valid images with embedded PHP)
+- No-extension and double-extension attack detection
+- Multi-pass URL decoding and obfuscation normalization
+- Known attack filename/pattern matching
+- Request path blocking at the FrontController and `pub/get.php` level
+- Controller-level upload blocking for customer attribute and file upload endpoints
+- A kill switch blocking all custom option file uploads via the Webapi File Processor
+
+### Installing both
+
+```bash
+composer require markshust/magento2-module-polyshell-patch aregowe/magento2-module-polyshell-protection
+bin/magento module:enable MarkShust_PolyshellPatch Aregowe_PolyShellProtection
+bin/magento setup:upgrade
+bin/magento cache:flush
+```
+
 ## Vulnerability Summary
 
 Magento's REST API accepts file uploads as part of cart item custom options. When a product option has type **file**, Magento processes an embedded `file_info` object containing base64-encoded file data, a MIME type, and a filename. The file is written to `pub/media/custom_options/quote/` on the server.
@@ -114,7 +138,7 @@ This module implements **eight layered Magento plugins** and **three security mo
 ### Additional Defenses
 
 - **Nginx deny rules** — recommended in tandem with this module to block direct access to `pub/media/custom_options/` at the web server level.
-- **MarkShust_PolyshellPatch** — this module runs alongside and extends MarkShust's patch. MarkShust provides a basic 4-extension allowlist on `ImageContentValidator` and `ImageProcessor`. This module adds polyglot scanning, no-extension blocking, double-extension detection, obfuscation decoding, attack pattern matching, and all the additional interception layers above.
+- **[MarkShust_PolyshellPatch](https://github.com/markshust/magento-polyshell-patch)** — this module runs alongside and extends MarkShust's patch. MarkShust provides a basic 4-extension allowlist on `ImageContentValidator` and `ImageProcessor`. This module adds polyglot scanning, no-extension blocking, double-extension detection, obfuscation decoding, attack pattern matching, and all the additional interception layers above.
 
 ## Module Structure
 
