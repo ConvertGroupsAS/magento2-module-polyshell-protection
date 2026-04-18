@@ -36,8 +36,8 @@ When asked to review, work through sections interactively (Architecture → Code
 
 These guide all recommendations and code generation:
 
-- **DRY is important.** Flag repetition aggressively. Shared constants already live in `FileUploadGuard` (e.g., `ALLOWED_IMAGE_EXTENSIONS`, `MIME_EXTENSION_MAP`, `BLOCKED_EXTENSION_PATTERN`). Shared utility methods like `FileUploadGuard::inferExtensionFromMimeType()` centralize cross-plugin logic. Never duplicate them.
-- **Follow modern code standards** for PHP 8.4, XML, JSON, and Adobe Commerce conventions.
+- **DRY is important.** Flag repetition aggressively. Shared constants already live in `FileUploadGuard` (e.g., `ALLOWED_IMAGE_EXTENSIONS`, `MIME_EXTENSION_MAP`, `BLOCKED_EXTENSION_PATTERN`). Shared utility methods like `FileUploadGuard::inferExtensionFromMimeType()` and `FileUploadGuard::inferExtensionForFileName()` centralize cross-plugin logic. Never duplicate them.
+- **Follow modern code standards** for PHP 8.1-compatible code, XML, JSON, and Adobe Commerce conventions.
 - **Well-tested code is non-negotiable.** Favor more tests over fewer. Every public method, every edge case, every failure path.
 - **Keep code engineered enough.** Avoid under-engineered fragility and over-engineered premature abstraction.
 - **Err on the side of handling more edge cases, not fewer.** Thoughtfulness over speed.
@@ -386,12 +386,14 @@ When adding new scan patterns, ensure they do not trigger on legitimate binary c
 
 ### Filename Normalization
 
-`FileUploadGuard::normalizeFileName()` applies multi-pass normalization:
+`FileUploadGuard::normalizeFileName()` is a **private** method that applies multi-pass normalization:
 
 1. Unicode escape decoding (`\u002e` → `.`)
 2. Multi-pass URL decoding (`%2e` → `.`)
-3. Control character removal
+3. CR/LF/TAB replacement with spaces (other control characters are preserved and rejected by `assertSafeFileName()`)
 4. Whitespace collapse
+
+Plugins must not call `normalizeFileName()` directly. Instead, use the public methods `assertSafeFileName()` or `inferExtensionForFileName()`, which normalize internally and enforce safety validation.
 
 **Any filename validation must use the normalized form.** Never validate against the raw input.
 
