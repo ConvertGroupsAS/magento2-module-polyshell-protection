@@ -110,11 +110,12 @@ No exceptions.
 
 ### Type System
 
-- **All** function parameters must have type declarations.
-- **All** methods must have return type declarations.
+- For **new and modified code**, function parameters should have type declarations wherever the signature is under our control.
+- **All** methods should have return type declarations unless a Magento/framework compatibility constraint prevents it.
 - **All** class properties must have typed declarations.
 - Use union types (`string|null`) or nullable types (`?string`) where appropriate. Prefer `?string` for single-type nullable.
-- Do not use `mixed` unless truly necessary and justified.
+- Do not use `mixed` unless it is truly necessary, justified, and preferably documented inline.
+- **Magento plugin/signature compatibility exceptions:** when implementing `before*`, `around*`, `after*`, observers, framework interfaces, or other interception points, preserve the signature shape required for compatibility with the intercepted method/framework contract. Do not add parameter types or narrow types if doing so would break interception compatibility. In those cases, prefer the framework-compatible signature over this default typing preference.
 
 ### Constructor Style
 

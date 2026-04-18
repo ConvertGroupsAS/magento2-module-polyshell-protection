@@ -148,10 +148,12 @@ class FileUploadGuard
     }
 
     /**
-     * Normalize a filename by decoding unicode/URL escapes, replacing control
+     * Normalize a filename by decoding unicode/URL escapes, replacing CR/LF/TAB
      * characters with spaces, collapsing whitespace and dots, lowercasing, and
-     * trimming trailing dots/spaces. Used by assertSafeFileName() internally and
-     * by image-hardening plugins to derive a canonical persisted filename.
+     * trimming trailing dots/spaces. Other control characters are preserved here
+     * and are rejected later by assertSafeFileName(). Used by
+     * assertSafeFileName() internally and by image-hardening plugins to derive a
+     * canonical persisted filename.
      *
      * @param string|null $fileName
      * @return string
