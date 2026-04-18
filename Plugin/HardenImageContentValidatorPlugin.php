@@ -87,7 +87,7 @@ class HardenImageContentValidatorPlugin
 
         // For extension-less REST payloads, infer extension from trusted MIME type.
         if ($extension === '') {
-            $inferredExtension = $this->inferExtensionFromMimeType($mimeType);
+            $inferredExtension = FileUploadGuard::inferExtensionFromMimeType($mimeType);
             if ($inferredExtension === null) {
                 $this->logBlock('no extension', $fileName);
                 throw new InputException(__('Image file must include a valid file extension.'));
@@ -97,6 +97,12 @@ class HardenImageContentValidatorPlugin
             if ($normalizedFileName === '') {
                 $this->logBlock('empty filename', '');
                 throw new InputException(__('Image file name is required.'));
+            }
+
+            // Reject path separators and control characters in the base name.
+            if (preg_match('/[\\\\\/\x00-\x1F\x7F]/', $normalizedFileName) === 1) {
+                $this->logBlock('invalid filename characters', $fileName);
+                throw new InputException(__('Image file name contains invalid characters.'));
             }
 
             $fileName = $normalizedFileName . '.' . $inferredExtension;
@@ -135,17 +141,6 @@ class HardenImageContentValidatorPlugin
         }
 
         return $result;
-    }
-
-    private function inferExtensionFromMimeType(?string $mimeType): ?string
-    {
-        if ($mimeType === null || trim($mimeType) === '') {
-            return null;
-        }
-
-        $normalized = strtolower(trim(explode(';', $mimeType)[0]));
-
-        return FileUploadGuard::MIME_EXTENSION_MAP[$normalized] ?? null;
     }
 
     private function logBlock(string $reason, string $fileName): void

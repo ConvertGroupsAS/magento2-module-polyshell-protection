@@ -578,6 +578,72 @@ class MimeExtensionInferenceValidationTest extends TestCase
     }
 
     // ========================================================================
+    // Security — Path separator / control character rejection (extension-less)
+    // ========================================================================
+
+    /**
+     * @dataProvider pathSeparatorFilenameProvider
+     */
+    public function testValidatorPluginExtensionlessWithPathSeparatorBlocked(
+        string $filename
+    ): void {
+        $imageContent = $this->createImageContentMock(
+            $filename,
+            'image/jpeg',
+            $this->getCleanJpegBase64()
+        );
+
+        $imageContent->expects($this->never())->method('setName');
+
+        $this->expectException(InputException::class);
+        $this->expectExceptionMessage('invalid characters');
+
+        $subject = $this->createMock(ImageContentValidator::class);
+        $this->validatorPlugin->afterIsValid($subject, true, $imageContent);
+    }
+
+    /**
+     * @dataProvider pathSeparatorFilenameProvider
+     */
+    public function testProcessorPluginExtensionlessWithPathSeparatorBlocked(
+        string $filename
+    ): void {
+        $imageContent = $this->createImageContentMock(
+            $filename,
+            'image/jpeg',
+            $this->getCleanJpegBase64()
+        );
+
+        $imageContent->expects($this->never())->method('setName');
+
+        $this->expectException(InputException::class);
+        $this->expectExceptionMessage('invalid characters');
+
+        $subject = $this->createMock(ImageProcessor::class);
+        $this->processorPlugin->beforeProcessImageContent(
+            $subject,
+            'tmp/catalog/product',
+            $imageContent
+        );
+    }
+
+    public static function pathSeparatorFilenameProvider(): array
+    {
+        return [
+            'forward slash traversal' => ['../../../etc/passwd'],
+            'backslash traversal' => ['..\\..\\config'],
+            'embedded forward slash' => ['path/to/shell'],
+            'embedded backslash' => ['path\\to\\shell'],
+            'null byte injection' => ["image\x00php"],
+            'tab control character' => ["image\tname"],
+            'newline control character' => ["image\nname"],
+            'carriage return' => ["image\rname"],
+            'escape character' => ["image\x1Bname"],
+            'DEL character' => ["image\x7Fname"],
+        ];
+    }
+
+    // ========================================================================
     // Helpers
     // ========================================================================
 

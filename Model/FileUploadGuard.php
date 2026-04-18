@@ -53,6 +53,24 @@ class FileUploadGuard
     ];
 
     /**
+     * Infer a file extension from a trusted MIME type.
+     *
+     * Normalizes the MIME type (lowercase, trim, strip parameters like charset)
+     * and looks it up in MIME_EXTENSION_MAP. Returns null if the MIME type is
+     * empty, null, or not in the allowlist.
+     */
+    public static function inferExtensionFromMimeType(?string $mimeType): ?string
+    {
+        if ($mimeType === null || trim($mimeType) === '') {
+            return null;
+        }
+
+        $normalized = strtolower(trim(explode(';', $mimeType)[0]));
+
+        return self::MIME_EXTENSION_MAP[$normalized] ?? null;
+    }
+
+    /**
      * Uploads should be explicit, non-executable customer file types.
      *
      * @var array<string, bool>

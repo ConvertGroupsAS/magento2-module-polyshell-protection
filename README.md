@@ -134,14 +134,14 @@ This module implements **eight layered Magento plugins** and **three security mo
 
 | Plugin | Target Class | Strategy |
 |--------|-------------|----------|
-| `HardenImageContentValidatorPlugin` | `ImageContentValidator` | After core validation, enforces strict image-only extension allowlist, blocks files with no extension, detects double-extension attacks (`.php.jpg`), scans base64 content for polyglot payloads. Integrates MarkShust_PolyshellPatch's extension check. |
-| `HardenImageProcessorPlugin` | `ImageProcessor` | Before file write, locks the Uploader's allowed extensions via reflection, validates filename, blocks non-image extensions, scans for polyglot content. |
+| `HardenImageContentValidatorPlugin` | `ImageContentValidator` | After core validation, enforces strict image-only extension allowlist, blocks files with no extension, infers extensions from MIME type for extension-less REST payloads, validates inferred filenames for path separators and control characters, detects double-extension attacks (`.php.jpg`), scans base64 content for polyglot payloads. Integrates MarkShust_PolyshellPatch's extension check. |
+| `HardenImageProcessorPlugin` | `ImageProcessor` | Before file write, locks the Uploader's allowed extensions via reflection, infers extensions from MIME type for extension-less payloads, validates inferred filenames for path traversal and control characters, blocks non-image extensions, scans for polyglot content. |
 
 ### Security Models
 
 | Model | Responsibility |
 |-------|---------------|
-| `FileUploadGuard` | Orchestrates filename validation: extension allowlist, blocked-extension pattern matching, normalization (unicode decoding, multi-pass URL decoding, control character removal), and delegates to AttackPatternDetector and PolyglotFileDetector. |
+| `FileUploadGuard` | Orchestrates filename validation: extension allowlist, blocked-extension pattern matching, normalization (unicode decoding, multi-pass URL decoding, control character removal), MIME-to-extension inference via `inferExtensionFromMimeType()`, and delegates to AttackPatternDetector and PolyglotFileDetector. |
 | `AttackPatternDetector` | Maintains a list of known attack filenames and regex patterns observed in active PolyShell campaigns. Blocks exact filename matches and suspicious patterns (option_id + index.php, double extensions, shell/backdoor naming, obfuscation hints). |
 | `PolyglotFileDetector` | Detects polyglot files by checking if content starts with an image signature (PNG, GIF, JPEG, RIFF, ICO, CUR, BMP) and then scanning for embedded PHP code patterns (`<?php`, `eval(`, `system(`, `exec(`, etc.) and known attack beacon signatures (`409723*20`, campaign-specific MD5 hashes). |
 | `SecurityPathGuard` | Evaluates request paths and media-relative paths against blocked directory prefixes (`/media/customer_address`, `/media/custom_options`, etc.). |
@@ -179,6 +179,7 @@ app/code/Aregowe/PolyShellProtection/
 │   ├── ValidateUploadedFileContentPlugin.php
 │   └── ValidateUploadedFileNamePlugin.php
 ├── Test/Unit/
+│   ├── MimeExtensionInferenceValidationTest.php
 │   ├── Model/
 │   │   ├── AttackPatternDetectorTest.php
 │   │   ├── FileUploadGuardTest.php
