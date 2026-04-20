@@ -161,7 +161,7 @@ The module provides an admin panel at **Stores > Configuration > PolyShell Prote
 |---------|-------------|
 | **Base Allowed Extensions (read-only note)** | Displays the code-defined base allowlist: `7z, bmp, csv, doc, docx, gif, heic, jpeg, jpg, ods, odt, pdf, png, rar, rtf, txt, webp, xls, xlsx, zip`. |
 | **Additional Allowed Extensions** | Comma-separated list of extra extensions to allow (e.g. `ai, psd, svg`). Case-insensitive. Extensions that match blocked patterns are always rejected regardless of this setting. |
-| **Base Blocked Extensions (read-only note)** | Displays the code-defined base blocklist: `asp, aspx, bat, cgi, cmd, com, dll, exe, jar, js, jsp, mjs, msi, phar, php (incl. php3–php8), pht, phtml, phtm, pl, ps1, py, sh, shtml, so, vbs`. Double-extension patterns (e.g. `file.php.jpg`) are also blocked automatically. |
+| **Base Blocked Extensions (read-only note)** | Displays the code-defined base blocklist: `asp, aspx, bat, cgi, cmd, com, dll, exe, inc, jar, js, jsp, mjs, module, msi, phar, php (incl. php3–php8), phps, pht, phtml, phtm, pl, ps1, py, sh, shtml, so, vbs`. Double-extension patterns (e.g. `file.php.jpg`) are also blocked automatically. |
 | **Additional Blocked Extensions** | Comma-separated list of extra extensions to block (e.g. `svg, swf, html`). Case-insensitive. **Overrides all allowlists** — if an extension appears here and in the allowed list, it will be blocked. |
 
 ### Precedence Rules
