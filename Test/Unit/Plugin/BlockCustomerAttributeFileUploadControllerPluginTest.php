@@ -14,6 +14,16 @@ use Aregowe\PolyShellProtection\Plugin\BlockCustomerAttributeFileUploadControlle
 
 class BlockCustomerAttributeFileUploadControllerPluginTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        if (!class_exists(AbstractUploadFile::class)) {
+            $this->markTestSkipped(
+                'Magento\CustomerCustomAttributes\Controller\AbstractUploadFile is not available '
+                . '(requires Adobe Commerce; not present in Magento Open Source).'
+            );
+        }
+    }
+
     public function testBlocksAllUploadsWithJsonErrorResponse(): void
     {
         $jsonResult = $this->createMock(JsonResult::class);
