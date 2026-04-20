@@ -18,7 +18,7 @@
                 </field>
                 <field id="base_blocked_extensions_note" translate="label comment" type="note" sortOrder="30" showInDefault="1" showInWebsite="0" showInStore="0">
                     <label>Base Blocked Extensions (code-defined)</label>
-                    <comment><![CDATA[asp, aspx, bat, cgi, cmd, com, dll, exe, jar, js, jsp, mjs, msi, phar, php (incl. php3–php8), pht, phtml, phtm, pl, ps1, py, sh, shtml, so, vbs<br/><em>Double-extension patterns (e.g. file.php.jpg) are also blocked automatically.</em>]]></comment>
+                    <comment><![CDATA[asp, aspx, bat, cgi, cmd, com, dll, exe, inc, jar, js, jsp, mjs, module, msi, phar, php (incl. php3–php8), phps, pht, phtml, phtm, pl, ps1, py, sh, shtml, so, vbs<br/><em>Double-extension patterns (e.g. file.php.jpg) are also blocked automatically.</em>]]></comment>
                 </field>
                 <field id="additional_blocked_extensions" translate="label comment" type="text" sortOrder="40" showInDefault="1" showInWebsite="0" showInStore="0">
                     <label>Additional Blocked Extensions</label>

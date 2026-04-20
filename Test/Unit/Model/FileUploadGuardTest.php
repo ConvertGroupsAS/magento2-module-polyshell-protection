@@ -263,12 +263,12 @@ class FileUploadGuardTest extends TestCase
     public function testGetAllowedExtensionsRejectsAllBlockedPatterns(): void
     {
         $guard = $this->createGuardWithAdditionalExtensions(
-            'phar, pht, pl, py, cgi, sh, asp, aspx, jsp, js, bat, cmd, vbs, ps1, jar, msi'
+            'phar, pht, pl, py, cgi, sh, asp, aspx, jsp, js, bat, cmd, vbs, ps1, jar, msi, inc, module, phps'
         );
 
         $extensions = $guard->getAllowedExtensions();
 
-        foreach (['phar', 'pht', 'pl', 'py', 'cgi', 'sh', 'asp', 'aspx', 'jsp', 'js', 'bat', 'cmd', 'vbs', 'ps1', 'jar', 'msi'] as $blocked) {
+        foreach (['phar', 'pht', 'pl', 'py', 'cgi', 'sh', 'asp', 'aspx', 'jsp', 'js', 'bat', 'cmd', 'vbs', 'ps1', 'jar', 'msi', 'inc', 'module', 'phps'] as $blocked) {
             $this->assertArrayNotHasKey($blocked, $extensions, "Blocked extension '$blocked' should not be allowed");
         }
     }
@@ -437,8 +437,9 @@ class FileUploadGuardTest extends TestCase
     {
         $expected = [
             'asp', 'aspx', 'bat', 'cgi', 'cmd', 'com', 'dll', 'exe',
-            'jar', 'js', 'jsp', 'mjs', 'msi', 'phar', 'php', 'pht',
-            'phtml', 'phtm', 'pl', 'ps1', 'py', 'sh', 'shtml', 'so', 'vbs',
+            'inc', 'jar', 'js', 'jsp', 'mjs', 'module', 'msi', 'phar',
+            'php', 'phps', 'pht', 'phtml', 'phtm', 'pl', 'ps1', 'py',
+            'sh', 'shtml', 'so', 'vbs',
         ];
 
         foreach ($expected as $ext) {
@@ -448,5 +449,60 @@ class FileUploadGuardTest extends TestCase
                 "Expected '$ext' in BASE_BLOCKED_EXTENSIONS"
             );
         }
+    }
+
+    // ========================================================================
+    // .inc, .module, .phps — newly blocked extensions (issue #4)
+    // ========================================================================
+
+    /**
+     * @dataProvider newlyBlockedExtensionsProvider
+     */
+    public function testBlocksNewlyAddedDangerousExtensions(string $filename): void
+    {
+        $this->expectException(InputException::class);
+        $this->expectExceptionMessage('Uploaded file extension is not allowed for security reasons.');
+
+        $this->guard->assertSafeFileName($filename);
+    }
+
+    public static function newlyBlockedExtensionsProvider(): array
+    {
+        return [
+            '.inc file' => ['config.inc'],
+            '.module file' => ['custom.module'],
+            '.phps file' => ['info.phps'],
+            '.inc uppercase' => ['CONFIG.INC'],
+            '.module uppercase' => ['CUSTOM.MODULE'],
+            '.phps uppercase' => ['INFO.PHPS'],
+        ];
+    }
+
+    /**
+     * @dataProvider doubleExtensionBypassProvider
+     */
+    public function testBlocksDoubleExtensionBypassWithNewExtensions(string $filename): void
+    {
+        $this->expectException(InputException::class);
+        $this->expectExceptionMessage('Uploaded file extension is not allowed for security reasons.');
+
+        $this->guard->assertSafeFileName($filename);
+    }
+
+    /**
+     * Verifies that double-extension attacks using .inc, .module, .phps
+     * are caught by BLOCKED_EXTENSION_PATTERN. These were reported in
+     * issue #4 as real attack vectors in the wild (e.g. file.inc..png
+     * normalizes to file.inc.png).
+     */
+    public static function doubleExtensionBypassProvider(): array
+    {
+        return [
+            '.inc.png double-extension' => ['bobwashere_PNG.inc.png'],
+            '.inc.jpg double-extension' => ['shell.inc.jpg'],
+            '.module.gif double-extension' => ['backdoor.module.gif'],
+            '.phps.png double-extension' => ['source.phps.png'],
+            '.phps.jpg double-extension' => ['leak.phps.jpg'],
+        ];
     }
 }

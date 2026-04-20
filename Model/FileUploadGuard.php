@@ -38,13 +38,16 @@ class FileUploadGuard
     /**
      * Block executable/script-like extensions, including double extension patterns.
      */
-    public const BLOCKED_EXTENSION_PATTERN = '/\.(php\d*|phtml|phar|pht|phtm|pl|py|cgi|sh|shtml?|asp|aspx|jsp|js|mjs|exe|dll|so|com|bat|cmd|vbs|ps1|jar|msi)(\.|$)/i';
+    public const BLOCKED_EXTENSION_PATTERN = '/\.(php\d*|phtml|phar|pht|phtm|phps|pl|py|cgi|sh|shtml?|inc|module|asp|aspx|jsp|js|mjs|exe|dll|so|com|bat|cmd|vbs|ps1|jar|msi)(\.|$)/i';
 
     /**
      * Base blocked extensions: explicit executable/script extensions derived
      * from BLOCKED_EXTENSION_PATTERN. These are the single-extension exact
      * matches; the regex pattern additionally catches numbered variants
      * (php3, php7, etc.) and double-extension patterns (file.php.jpg).
+     *
+     * Includes PHP include files (.inc), PHP source files (.phps), and
+     * module files (.module) which can be configured as executable by web servers.
      *
      * Additional blocked extensions can be configured via admin at
      * Stores > Configuration > PolyShell Protection > Additional Blocked Extensions.
@@ -60,13 +63,16 @@ class FileUploadGuard
         'com' => true,
         'dll' => true,
         'exe' => true,
+        'inc' => true,
         'jar' => true,
         'js' => true,
         'jsp' => true,
         'mjs' => true,
+        'module' => true,
         'msi' => true,
         'phar' => true,
         'php' => true,
+        'phps' => true,
         'pht' => true,
         'phtml' => true,
         'phtm' => true,

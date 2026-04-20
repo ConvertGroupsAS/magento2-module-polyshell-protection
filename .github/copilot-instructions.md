@@ -374,7 +374,7 @@ When adding new patterns to `AttackPatternDetector::ATTACK_FILENAMES` or `ATTACK
 ### Extension Allowlists and Blocklists
 
 - `FileUploadGuard::BASE_ALLOWED_EXTENSIONS` — base general upload allowlist (documents + images), code-defined.
-- `FileUploadGuard::BASE_BLOCKED_EXTENSIONS` — base blocklist of executable/script extensions, code-defined.
+- `FileUploadGuard::BASE_BLOCKED_EXTENSIONS` — base blocklist of executable/script extensions (including PHP include files `.inc`, PHP source `.phps`, and module files `.module`), code-defined.
 - `FileUploadGuard::getAllowedExtensions()` — returns the merged allowlist: base + admin-configured additions, minus any blocked extensions. The blocklist always overrides.
 - `FileUploadGuard::getBlockedExtensions()` — returns the merged blocklist: base + admin-configured additions.
 - `FileUploadGuard::ALLOWED_IMAGE_EXTENSIONS` — image-only allowlist used by image hardening plugins (not configurable via admin).
