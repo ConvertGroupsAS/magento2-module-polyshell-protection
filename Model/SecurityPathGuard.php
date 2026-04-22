@@ -20,7 +20,7 @@ class SecurityPathGuard
         $normalized = '/' . ltrim(trim($pathInfo), '/');
 
         foreach (self::BLOCKED_PATH_PREFIXES as $prefix) {
-            if ($normalized === $prefix || str_starts_with($normalized, $prefix . '/')) {
+            if ($normalized === $prefix || strpos($normalized, $prefix . '/') === 0) {
                 return true;
             }
         }
@@ -32,11 +32,11 @@ class SecurityPathGuard
     {
         $normalized = '/' . ltrim(trim($relativeMediaPath), '/');
 
-        return str_starts_with($normalized, '/customer_address/')
+        return strpos($normalized, '/customer_address/') === 0
             || $normalized === '/customer_address'
-            || str_starts_with($normalized, '/customer_addresses/')
+            || strpos($normalized, '/customer_addresses/') === 0
             || $normalized === '/customer_addresses'
-            || str_starts_with($normalized, '/custom_options/')
+            || strpos($normalized, '/custom_options/') === 0
             || $normalized === '/custom_options';
     }
 }

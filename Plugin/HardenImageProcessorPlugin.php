@@ -124,7 +124,7 @@ class HardenImageProcessorPlugin
         return [$entityType, $imageContent];
     }
 
-    private function logBlock(string $reason, string $fileName, mixed $entityType): void
+    private function logBlock(string $reason, string $fileName, $entityType): void
     {
         $this->logger->warning(
             'PolyShellProtection: Blocked image upload at ImageProcessor',

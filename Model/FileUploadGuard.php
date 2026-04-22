@@ -290,7 +290,7 @@ class FileUploadGuard
             throw new InputException(__('Uploaded file name contains invalid path separators.'));
         }
 
-        if (preg_match('/^\./', $normalized) === 1 || str_ends_with($normalized, '.')) {
+        if (preg_match('/^\./', $normalized) === 1 || substr($normalized, -1) === '.') {
             throw new InputException(__('Uploaded file name is not allowed.'));
         }
 
