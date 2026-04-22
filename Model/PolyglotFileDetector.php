@@ -111,7 +111,7 @@ class PolyglotFileDetector
     private function startsWithImageSignature(string $binary): bool
     {
         foreach (self::IMAGE_SIGNATURES as $signature => $_format) {
-            if (str_starts_with($binary, $signature)) {
+            if (strpos($binary, $signature) === 0) {
                 return true;
             }
         }
