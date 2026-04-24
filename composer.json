@@ -4,7 +4,7 @@
     "description": "Comprehensive defense-in-depth module that closes the PolyShell unrestricted file upload vulnerability (APSB25-94) in Adobe Commerce and Magento Open Source.",
     "require": {
         "php": "^7.2 || ^7.4 || ^8.0 || ^8.1 || ^8.2 || ^8.3",
-        "magento/framework": "^103"
+        "magento/framework": "^102 || ^103"
     },
     "replace": {
         "markshust/magento2-module-polyshell-patch": "*"
