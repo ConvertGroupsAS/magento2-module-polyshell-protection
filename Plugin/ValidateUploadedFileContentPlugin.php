@@ -13,9 +13,14 @@ use Aregowe\PolyShellProtection\Model\SecurityLogSanitizer;
 
 class ValidateUploadedFileContentPlugin
 {
-    private FileUploadGuard $fileUploadGuard;
-    private Logger $logger;
-    private SecurityLogSanitizer $logSanitizer;
+    /** @var FileUploadGuard */
+    private $fileUploadGuard;
+
+    /** @var Logger */
+    private $logger;
+
+    /** @var SecurityLogSanitizer */
+    private $logSanitizer;
 
     public function __construct(
         FileUploadGuard $fileUploadGuard,

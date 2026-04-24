@@ -19,11 +19,14 @@ class FileUploadGuard
      */
     public const XML_PATH_ADDITIONAL_BLOCKED_EXTENSIONS = 'aregowe_polyshell/upload_settings/additional_blocked_extensions';
 
-    private PolyglotFileDetector $polyglotDetector;
+    /** @var PolyglotFileDetector */
+    private $polyglotDetector;
 
-    private AttackPatternDetector $patternDetector;
+    /** @var AttackPatternDetector */
+    private $patternDetector;
 
-    private ScopeConfigInterface $scopeConfig;
+    /** @var ScopeConfigInterface */
+    private $scopeConfig;
 
     public function __construct(
         PolyglotFileDetector $polyglotDetector,
