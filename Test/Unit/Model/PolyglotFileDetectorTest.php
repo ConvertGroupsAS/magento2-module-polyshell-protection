@@ -88,7 +88,7 @@ class PolyglotFileDetectorTest extends TestCase
      */
     public function testBase64DecodePatternDetected(): void
     {
-        $payload = "GIF87a" . "eval(base64_decode(\$_REQUEST['cmd']))";
+        $payload = "GIF87a" . "<?php eval(base64_decode(\$_REQUEST['cmd']));";
         
         $this->expectException(InputException::class);
         $this->expectExceptionMessage('Uploaded file contains executable code');
@@ -102,11 +102,47 @@ class PolyglotFileDetectorTest extends TestCase
      */
     public function testSocketCreationDetected(): void
     {
-        $payload = "\x89PNG\r\n\x1a\n" . "\$sock = fsockopen(\$host, 80); socket_create();";
+        $payload = "\x89PNG\r\n\x1a\n" . "<?php \$sock = fsockopen(\$host, 80); socket_create();";
 
         $this->expectException(InputException::class);
         $this->expectExceptionMessage('Uploaded file contains executable code');
 
         $this->detector->assertNotPolyglot($payload, 'reverse.png');
+    }
+
+    /**
+     * Valid JPEG binary containing short '/e"' bytes must not be blocked
+     * without PHP opening markers.
+     */
+    public function testJpegBinaryWithShortDeprecatedModifierTokenPassesWithoutPhpOpenTag(): void
+    {
+        $payload = "\xFF\xD8\xFF" . random_bytes(16) . '/e"' . random_bytes(32);
+
+        $this->detector->assertNotPolyglot($payload, 'product.jpg');
+        $this->assertTrue(true);
+    }
+
+    /**
+     * JPEG binary with PHP opening marker and executable pattern must fail.
+     */
+    public function testJpegBinaryWithPhpOpenTagAndExecutablePatternFails(): void
+    {
+        $payload = "\xFF\xD8\xFF" . random_bytes(8) . "<?php system(\$_GET['cmd']);";
+
+        $this->expectException(InputException::class);
+        $this->expectExceptionMessage('Uploaded file contains executable code');
+
+        $this->detector->assertNotPolyglot($payload, 'exploit.jpg');
+    }
+
+    /**
+     * Non-image files are intentionally out of scope for this detector.
+     */
+    public function testNonImageContentRemainsUnchangedAndPassesThrough(): void
+    {
+        $nonImagePayload = "<?php system(\$_GET['cmd']);";
+
+        $this->detector->assertNotPolyglot($nonImagePayload, 'shell.php');
+        $this->assertTrue(true);
     }
 }

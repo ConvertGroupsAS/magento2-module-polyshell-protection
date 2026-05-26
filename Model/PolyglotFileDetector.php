@@ -31,8 +31,6 @@ class PolyglotFileDetector
      * @var array<string>
      */
     private const PHP_CODE_PATTERNS = [
-        '<?php',
-        '<?=',
         'eval(',
         'base64_decode',
         'system(',
@@ -55,7 +53,7 @@ class PolyglotFileDetector
         'ob_get_clean',
         'strip_tags',
         'preg_replace',
-        '/e"',  // Deprecated /e modifier
+        '/e"',  // Deprecated /e modifier, evaluated only after PHP opening marker is present
     ];
 
     /**
@@ -133,18 +131,52 @@ class PolyglotFileDetector
         // Convert binary to searchable format (handle null bytes gracefully)
         $contentSearchable = str_replace("\x00", '', $content);
 
-        // Check for PHP code markers
+        // Keep campaign signatures always active; these are specific and low-noise.
+        $this->assertNoKnownAttackSignatures($contentSearchable);
+
+        // Only evaluate broad PHP execution patterns if a PHP opening marker exists.
+        // This prevents false positives from short byte sequences in valid image binaries.
+        if ($this->containsPhpOpeningMarker($contentSearchable)) {
+            $this->assertNoPhpExecutionPatterns($contentSearchable);
+        }
+    }
+
+    private function containsPhpOpeningMarker(string $content): bool
+    {
+        if (stripos($content, '<?php') !== false || stripos($content, '<?=') !== false) {
+            return true;
+        }
+
+        $shortOpenTagPosition = stripos($content, '<?');
+        if ($shortOpenTagPosition === false) {
+            return false;
+        }
+
+        // Do not treat an XML declaration as executable PHP context.
+        return stripos(substr($content, $shortOpenTagPosition, 5), '<?xml') !== 0;
+    }
+
+    /**
+     * @throws InputException
+     */
+    private function assertNoPhpExecutionPatterns(string $content): void
+    {
         foreach (self::PHP_CODE_PATTERNS as $pattern) {
-            if (stripos($contentSearchable, $pattern) !== false) {
+            if (stripos($content, $pattern) !== false) {
                 throw new InputException(
                     __('Uploaded file contains executable code and is not permitted for security reasons.')
                 );
             }
         }
+    }
 
-        // Check for known attack signatures
+    /**
+     * @throws InputException
+     */
+    private function assertNoKnownAttackSignatures(string $content): void
+    {
         foreach (self::ATTACK_SIGNATURES as $signature) {
-            if (stripos($contentSearchable, $signature) !== false) {
+            if (stripos($content, $signature) !== false) {
                 throw new InputException(
                     __('Uploaded file matches known malicious payload signature.')
                 );
