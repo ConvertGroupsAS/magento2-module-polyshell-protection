@@ -21,13 +21,17 @@ use Aregowe\PolyShellProtection\Logger\Logger;
  */
 class ValidateCustomOptionUploadPlugin
 {
-    private FileUploadGuard $fileUploadGuard;
+    /** @var FileUploadGuard */
+    private $fileUploadGuard;
 
-    private RemoteAddress $remoteAddress;
+    /** @var RemoteAddress */
+    private $remoteAddress;
 
-    private Logger $logger;
+    /** @var Logger */
+    private $logger;
 
-    private SecurityLogSanitizer $logSanitizer;
+    /** @var SecurityLogSanitizer */
+    private $logSanitizer;
 
     public function __construct(
         FileUploadGuard $fileUploadGuard,

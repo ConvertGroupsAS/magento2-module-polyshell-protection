@@ -28,11 +28,14 @@ class BlockCustomerFileUploadPlugin
         'custom_options',
     ];
 
-    private Logger $logger;
+    /** @var Logger */
+    private $logger;
 
-    private SecurityLogSanitizer $logSanitizer;
+    /** @var SecurityLogSanitizer */
+    private $logSanitizer;
 
-    private static ?\ReflectionProperty $entityTypeCodeProperty = null;
+    /** @var \ReflectionProperty|null */
+    private static $entityTypeCodeProperty = null;
 
     public function __construct(
         Logger $logger,

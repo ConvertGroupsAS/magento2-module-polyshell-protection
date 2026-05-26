@@ -21,11 +21,14 @@ use Aregowe\PolyShellProtection\Logger\Logger;
  */
 class BlockCustomerAttributeFileUploadControllerPlugin
 {
-    private ResultFactory $resultFactory;
+    /** @var ResultFactory */
+    private $resultFactory;
 
-    private Logger $logger;
+    /** @var Logger */
+    private $logger;
 
-    private SecurityLogSanitizer $logSanitizer;
+    /** @var SecurityLogSanitizer */
+    private $logSanitizer;
 
     public function __construct(
         ResultFactory $resultFactory,

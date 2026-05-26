@@ -34,13 +34,17 @@ use Aregowe\PolyShellProtection\Logger\Logger;
  */
 class HardenImageContentValidatorPlugin
 {
-    private FileUploadGuard $fileUploadGuard;
+    /** @var FileUploadGuard */
+    private $fileUploadGuard;
 
-    private PolyglotFileDetector $polyglotDetector;
+    /** @var PolyglotFileDetector */
+    private $polyglotDetector;
 
-    private Logger $logger;
+    /** @var Logger */
+    private $logger;
 
-    private SecurityLogSanitizer $logSanitizer;
+    /** @var SecurityLogSanitizer */
+    private $logSanitizer;
 
     public function __construct(
         FileUploadGuard $fileUploadGuard,

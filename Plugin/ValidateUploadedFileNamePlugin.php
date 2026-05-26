@@ -21,11 +21,14 @@ use Aregowe\PolyShellProtection\Logger\Logger;
  */
 class ValidateUploadedFileNamePlugin
 {
-    private FileUploadGuard $fileUploadGuard;
+    /** @var FileUploadGuard */
+    private $fileUploadGuard;
 
-    private Logger $logger;
+    /** @var Logger */
+    private $logger;
 
-    private SecurityLogSanitizer $logSanitizer;
+    /** @var SecurityLogSanitizer */
+    private $logSanitizer;
 
     public function __construct(
         FileUploadGuard $fileUploadGuard,

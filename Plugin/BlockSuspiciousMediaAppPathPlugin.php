@@ -14,15 +14,20 @@ use Aregowe\PolyShellProtection\Model\SecurityPathGuard;
 
 class BlockSuspiciousMediaAppPathPlugin
 {
-    private Logger $logger;
+    /** @var Logger */
+    private $logger;
 
-    private RemoteAddress $remoteAddress;
+    /** @var RemoteAddress */
+    private $remoteAddress;
 
-    private SecurityPathGuard $securityPathGuard;
+    /** @var SecurityPathGuard */
+    private $securityPathGuard;
 
-    private SecurityLogSanitizer $logSanitizer;
+    /** @var SecurityLogSanitizer */
+    private $logSanitizer;
 
-    private ?\ReflectionProperty $relativeFileNameProperty = null;
+    /** @var \ReflectionProperty|null */
+    private $relativeFileNameProperty = null;
 
     public function __construct(
         Logger $logger,

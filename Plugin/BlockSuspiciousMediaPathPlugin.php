@@ -15,13 +15,17 @@ use Aregowe\PolyShellProtection\Model\SecurityPathGuard;
 
 class BlockSuspiciousMediaPathPlugin
 {
-    private Logger $logger;
+    /** @var Logger */
+    private $logger;
 
-    private RemoteAddress $remoteAddress;
+    /** @var RemoteAddress */
+    private $remoteAddress;
 
-    private SecurityPathGuard $securityPathGuard;
+    /** @var SecurityPathGuard */
+    private $securityPathGuard;
 
-    private SecurityLogSanitizer $logSanitizer;
+    /** @var SecurityLogSanitizer */
+    private $logSanitizer;
 
     public function __construct(
         Logger $logger,
